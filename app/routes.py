@@ -94,9 +94,11 @@ def create_task():
             missing_fields.append(field)
         if missing_fields:
             return {'error': f"{', '.join(missing_fields)} must be in the request body"}, 400
+        
         # Get the values from the request data
         title = data.get('title')
         description = data.get('description')
+        
         # Create the new task with the above values
         new_task = {
             "id": len(tasks_list) + 1,
