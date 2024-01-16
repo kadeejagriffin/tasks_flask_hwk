@@ -4,9 +4,6 @@ from fake_data.tasks import tasks_list
 from datetime import datetime
 from app.models import User
 
-
-users = []
-
 @app.route('/')
 def index():
     first_name = 'Kadeeja'
@@ -41,20 +38,15 @@ def create_user():
     password = data.get('password')
     
     # Check to see if any current users already have that username and/or email
-    for user in users:
-        if user['username'] == username or user['email' == email]:
-            return {'error': 'A user with that username and/or email already exists'}, 400
-    # Create a new user dict and append to the users list
-    new_user = {
-        "id": len(users) + 1,
-        "firstName": first_name,
-        "lastName": last_name,
-        "usernmae": username,
-        "email": email,
-        "password": password
-    }
-    users.append(new_user)
-    return new_user, 201
+    check_users = db.session.execute(db.select(User).where((User.username==username)|(User.email==email))).scalars().all() 
+    # If the list is not empty then someone alrady has that username or email
+    if check_users:
+        return {'error': ' A user with that username and/or email already exists'}, 400
+    # Create a new user dict instance which will add it to the database
+    new_user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
+    return new_user.to_dict(), 201
+
+
 # TASKS ENDPOINT
 
 # Create a route that will get rid of all the tasks
