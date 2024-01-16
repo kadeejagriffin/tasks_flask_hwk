@@ -2,7 +2,7 @@ from flask import request
 from app import app, db 
 from fake_data.tasks import tasks_list
 from datetime import datetime
-from app.models import User
+from app.models import User, Task
 
 @app.route('/')
 def index():
@@ -53,22 +53,19 @@ def create_user():
 @app.route('/tasks')
 def get_tasks():
     # Get tasks from storage (fake data)
-    tasks = tasks_list
-    return tasks 
+    tasks = db.session.execute(db.select(Task)).scalars().all
+    # return a list of the dictionary version of each task in tasks
+    return [t.to_dict() for t in tasks]
 
 # Get single task by ID
 @app.route('/tasks/<int:task_id>')
 def get_task(task_id):
-    # Get all tasks from storage
-    tasks = tasks_list
-    # For each dictionary in the list of taks dictionaries
-    for task in tasks:
-        # if the key of 'id' on the task dictionary matched the task_id from the URL
-        if task['id'] == task_id:
-            #return that task dictionary
-            return task
-    # If we loop through all of the tasks without returning, the task with that ID does not exist
-    return {'error': f'Task with an ID of {task_id} does not exist'}, 404
+    # Get the task from the database based on the ID
+    task = db.session.get(Task, task_id)
+    if task:
+        return task.to_dict()
+    else:
+        return {'error': f'Task with an ID of {task_id} does not exist'}, 404
     
 # create a new task
 @app.route('/tasks', methods=['POST'])
@@ -91,16 +88,7 @@ def create_task():
         title = data.get('title')
         description = data.get('description')
         
-        # Create the new task with the above values
-        new_task = {
-            "id": len(tasks_list) + 1,
-            "title": title,
-            "description": description,
-            "completed": False,
-            "createdAt": datetime.utcnow()
-            
-        }
-        # Add the new task to the tasks
-        tasks_list.append(new_task)    
-        return new_task, 201
+        # Create a new instance of Task which will add to our database
+        new_task = Task(title=title, description=description)
+        return new_task.to_dict(), 201
 

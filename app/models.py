@@ -55,6 +55,7 @@ class Task(db.Model):
     completed = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     # In SQL - task_id INTEGER NOT NULL, FOREIGN KEY(task_id) REFERENCES task_id
+    #user_id = db.Column(db.Integer, db.ForeignKey('user_id'), nullable=False)
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -74,7 +75,6 @@ class Task(db.Model):
             "description": self.description,
             "completed": self.completed,
             "createdAt": self.created_at,
-            "dueDate": self.due_date
         }
     
     
